@@ -5,15 +5,17 @@ import {
   TextInput,
   Pressable,
   TouchableOpacity,
-  Alert
+  Alert,
+  Image
 } from "react-native"
 import React, { useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useLoader } from "@/hooks/useLoader"
-import { addProduct, getProductById, updateProduct } from "@/services/productServices"
+import { addProduct, getProductById, updateProduct, uploadImage } from "@/services/productServices"
 import { getAllCategories } from "@/services/categoryService"
 import { Category } from "@/types/category"
+import * as ImagePicker from 'expo-image-picker'
 
 const ProductForm = () => {
   const router = useRouter()
@@ -27,13 +29,17 @@ const ProductForm = () => {
   const [category, setCategory] = useState("")
   const [condition, setCondition] = useState("Good")
   const [categories, setCategories] = useState<Category[]>([])
-  const [imageUrl, setImageUrl] = useState("")
+
+  const [image, setImage] = useState<string | null>(null) // local uri
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined) // stored download URL
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     fetchCategories()
     if (productId) {
       fetchProduct(productId as string)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId])
 
   const fetchCategories = async () => {
@@ -66,14 +72,40 @@ const ProductForm = () => {
     }
   }
 
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== "granted") {
+        Alert.alert("Permission denied", "We need permission to access your gallery")
+        return
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      })
+
+      if (!result.canceled) {
+        const uri = result.assets[0].uri
+        setImage(uri)
+      }
+    } catch (err: any) {
+      console.error("pickImage error", err)
+      Alert.alert("Error", "Could not pick image")
+    }
+  }
+
   const handleSubmit = async () => {
+    // validation
     if (!name.trim() || !price.trim() || !stock.trim() || !category.trim()) {
       Alert.alert("Error", "Please fill all required fields")
       return
     }
 
     const priceNum = parseFloat(price)
-    const stockNum = parseInt(stock)
+    const stockNum = parseInt(stock, 10)
     
     if (isNaN(priceNum) || priceNum <= 0) {
       Alert.alert("Error", "Please enter a valid price")
@@ -87,31 +119,46 @@ const ProductForm = () => {
 
     showLoader()
     try {
+      // ensure image upload (if user selected a local image)
+      let finalImageUrl = imageUrl
+
+      if (image) {
+        setUploading(true)
+        try {
+          const uploadedUrl = await uploadImage(image) // uploadImage must return the download URL
+          finalImageUrl = uploadedUrl
+          setImageUrl(uploadedUrl)
+        } catch (err: any) {
+          console.error("Image upload failed", err)
+          Alert.alert("Upload failed", err.message || "Could not upload image")
+          // decide: continue without image or abort. Here we abort save.
+          return
+        } finally {
+          setUploading(false)
+        }
+      }
+
+      const payload = {
+        name,
+        description,
+        price: priceNum,
+        stock: stockNum,
+        category,
+        condition,
+        imageUrl: finalImageUrl
+      }
+
       if (productId) {
-        await updateProduct(productId as string, {
-          name,
-          description,
-          price: priceNum,
-          stock: stockNum,
-          category,
-          condition,
-          imageUrl
-        })
+        await updateProduct(productId as string, payload)
         Alert.alert("Success", "Product updated successfully")
       } else {
-        await addProduct({
-          name,
-          description,
-          price: priceNum,
-          stock: stockNum,
-          category,
-          condition,
-          imageUrl
-        })
+        await addProduct(payload)
         Alert.alert("Success", "Product added successfully")
       }
+
       router.back()
     } catch (error: any) {
+      console.error("handleSubmit error", error)
       Alert.alert("Error", error.message || "Something went wrong")
     } finally {
       hideLoader()
@@ -154,7 +201,7 @@ const ProductForm = () => {
 
         <View className="flex-row space-x-4 mb-4">
           <View className="flex-1">
-            <Text className="text-gray-800 font-semibold mb-2">Price ($) *</Text>
+            <Text className="text-gray-800 font-semibold mb-2">Price (Rs.) *</Text>
             <TextInput
               placeholder="0.00"
               className="border border-gray-300 bg-white p-3 rounded-xl"
@@ -207,21 +254,26 @@ const ProductForm = () => {
           ))}
         </View>
 
-        <Text className="text-gray-800 font-semibold mb-2">Image URL (Optional)</Text>
-        <TextInput
-          placeholder="https://example.com/image.jpg"
-          className="border border-gray-300 bg-white p-3 mb-6 rounded-xl"
-          value={imageUrl}
-          onChangeText={setImageUrl}
-        />
+        <Text className="text-gray-800 font-semibold mb-2">Product Image (Optional)</Text>
+        <TouchableOpacity
+          onPress={pickImage}
+          className="bg-gray-50 p-4 rounded-xl border border-gray-200 items-center mb-4"
+        >
+          {image || imageUrl ? (
+            <Image source={{ uri: image || imageUrl }} className="w-32 h-32 rounded-xl" resizeMode="cover" />
+          ) : (
+            <MaterialIcons name="add-photo-alternate" size={48} color="#9CA3AF" />
+          )}
+          <Text className="mt-2 text-gray-600">Tap to select image</Text>
+        </TouchableOpacity>
 
         <Pressable
-          className={`bg-amber-600 px-6 py-4 rounded-2xl ${isLoading ? "opacity-70" : ""}`}
+          className={`bg-amber-600 px-6 py-4 rounded-2xl ${isLoading || uploading ? "opacity-70" : ""}`}
           onPress={handleSubmit}
-          disabled={isLoading}
+          disabled={isLoading || uploading}
         >
           <Text className="text-white text-lg text-center font-semibold">
-            {isLoading ? "Please wait..." : (productId ? "Update Product" : "Add Product")}
+            {isLoading || uploading ? "Please wait..." : (productId ? "Update Product" : "Add Product")}
           </Text>
         </Pressable>
       </View>
@@ -230,3 +282,4 @@ const ProductForm = () => {
 }
 
 export default ProductForm
+

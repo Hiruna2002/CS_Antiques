@@ -155,7 +155,7 @@
 
 
 
-
+//--------------------------------------------------------------------------------------------
 
 
 // productService.ts
@@ -179,10 +179,47 @@ import { Product } from '@/types/product'
 
 const productsCollection = collection(db, 'products')
 
+const CLOUD_NAME = 'dod3xppgl';
+const UPLOAD_PRESET = 'cs_antiques';
+
 const getCurrentUser = () => {
   const auth = getAuthInstance()
   return auth.currentUser
 }
+
+export const uploadImage = async (uri: string): Promise<string> => {
+  try {
+    const formData = new FormData();
+
+    formData.append('file', {
+      uri,
+      type: 'image/jpeg',
+      name: `food-${Date.now()}.jpg`,
+    } as any);
+
+    formData.append('upload_preset', UPLOAD_PRESET);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.secure_url) {
+      console.log('Cloudinary success:', data.secure_url);
+      return data.secure_url;
+    } else {
+      throw new Error(data.error?.message || 'Upload failed');
+    }
+  } catch (error: any) {
+    console.error('Cloudinary error:', error);
+    throw new Error(`Image upload failed: ${error.message}`);
+  }
+};
 
 const formatTimestampToISO = (value: any): string => {
   if (!value) return ''
