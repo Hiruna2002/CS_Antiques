@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   Image,
   Pressable,
@@ -10,11 +11,15 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { login } from "@/services/authService";
 
 const Login = () => {
   const router = useRouter();
   const fade = useRef(new Animated.Value(0)).current;
   const translate = useRef(new Animated.Value(24)).current;
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   // Gold Color Constant
   const GOLD = "#D4AF37";
@@ -33,6 +38,20 @@ const Login = () => {
       }),
     ]).start();
   }, []);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+          Alert.alert("Error", "Please fill all fields");
+          return;
+    }
+
+    try {
+          await login(email.trim(), password.trim(),)
+          router.push("/home");
+        } catch (error: any) {
+          Alert.alert("Registration Failed", error.message || "Something went wrong");
+        }
+  }
 
   function createNewAccount() {
     router.push("/register")
@@ -76,6 +95,8 @@ const Login = () => {
               placeholderTextColor="#A1A1AA"
               className="border-b border-gray-200 py-3 px-1 text-lg"
               style={{ borderBottomColor: '#E5E7EB' }}
+              value={email}
+              onChangeText={setEmail}
             />
           </View>
 
@@ -88,13 +109,15 @@ const Login = () => {
               placeholderTextColor="#A1A1AA"
               secureTextEntry
               className="border-b border-gray-200 py-3 px-1 text-lg"
+              value={password}
+              onChangeText={setPassword}
             />
           </View>
         </View>
 
         {/* Gold Action Button */}
         <Pressable 
-          onPress={() => router.push("/home")}
+          onPress={handleLogin}
           style={{ backgroundColor: GOLD }}
           className="mt-12 py-4 rounded-full items-center shadow-md"
         >
