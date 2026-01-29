@@ -86,14 +86,14 @@ const Home = () => {
           value={stats.totalProducts}
           icon="inventory"
           color="bg-blue-500"
-          onPress={() => router.push("/products")}
+          onPress={() => router.push("/product")}
         />
         <StatCard
           title="Low Stock Items"
           value={stats.lowStock}
           icon="warning"
           color="bg-red-500"
-          onPress={() => router.push("/products")}
+          onPress={() => router.push("/product")}
         />
         <StatCard
           title="Pending Orders"

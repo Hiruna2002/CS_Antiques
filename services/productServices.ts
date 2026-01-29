@@ -267,7 +267,7 @@ export const getAllProducts = async () => {
       stock: Number(data.stock ?? 0),
       category: (data.category as string) || '',
       condition: (data.condition as string) || '',
-      imageUrl: (data.imageUrl as string) || '',
+      imageUrl: data.imageUrl,
       createdAt: formatTimestampToISO(data.createdAt) || new Date().toISOString(),
       userId: (data.userId as string) || ''
     }

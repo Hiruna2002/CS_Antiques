@@ -76,12 +76,12 @@ const Categories = () => {
   return (
     <View className="flex-1 bg-gray-50 p-4">
       <TouchableOpacity
-              className="flex-row items-center mb-6"
-              onPress={() => router.back()}
-            >
-              <MaterialIcons name="arrow-back-ios" size={24} color="#374151" />
-              <Text className="text-gray-800 font-medium ml-1">Back</Text>
-            </TouchableOpacity>
+        className="flex-row items-center mb-6"
+        onPress={() => router.back()}
+      >
+        <MaterialIcons name="arrow-back-ios" size={24} color="#374151" />
+        <Text className="text-gray-800 font-medium ml-1">Back</Text>
+      </TouchableOpacity>
       <Text className="text-2xl font-bold text-amber-900 mb-6">Product Categories</Text>
 
       {/* Add Category Form */}

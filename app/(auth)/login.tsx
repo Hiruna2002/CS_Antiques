@@ -48,6 +48,7 @@ const Login = () => {
     try {
           await login(email.trim(), password.trim(),)
           router.push("/home");
+          // router.push("/(user)/(tabs)/userHome")
         } catch (error: any) {
           Alert.alert("Registration Failed", error.message || "Something went wrong");
         }
