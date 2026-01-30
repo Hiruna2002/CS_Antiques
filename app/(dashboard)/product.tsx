@@ -11,16 +11,17 @@ import {
 } from "react-native"
 import React, { useCallback, useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
-import { router, useFocusEffect, useRouter } from "expo-router"
+import { router, useFocusEffect, usePathname, useRouter } from "expo-router"
 import { useLoader } from "@/hooks/useLoader"
 import { getAllProducts, addProduct, deleteProduct, searchProducts } from "@/services/productServices"
 import { Product } from "@/types/product"
 // import { useCart } from "@/hooks/useCart"
 
 const Products = () => {
-    const router = useRouter()
-//   const { addToCart } = useCart()
+  const router = useRouter()
   const { showLoader, hideLoader } = useLoader()
+
+  const pathname = usePathname()
   
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -81,19 +82,6 @@ const Products = () => {
     setSelectedCategory(category)
   }
 
-//   const handleAddToCart = (product: Product) => {
-//     addToCart(product, 1)
-//     // Show success message
-//     alert(`${product.name} added to cart!`)
-//   }
-
-//   const formatPrice = (price: number) => {
-//     return new Intl.NumberFormat("sl-Rs.", {
-//       style: "currency",
-//       currency: "Rs."
-//     }).format(price)
-//   }
-
     const formatPrice = (price: number) =>
     new Intl.NumberFormat("en-LK", {
         style: "currency",
@@ -114,17 +102,35 @@ const Products = () => {
     )
   }
 
+  const StatCard = ({ title, value, icon, color, onPress }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        className="bg-white rounded-2xl p-4 mb-4 border border-gray-200 shadow-sm flex-row items-center"
+      >
+        <View className={`p-3 rounded-full ${color} mr-4`}>
+          <MaterialIcons name={icon} size={24} color="#fff" />
+        </View>
+        <View>
+          <Text className="text-2xl font-bold text-gray-900">{value}</Text>
+          <Text className="text-gray-600">{title}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  
+    const menuItems = [
+      { id: 1, name: "Home", icon: "home", route: "/" },
+      { id: 2, name: "Category", icon: "inventory", route: "/categories" },
+      { id: 3, name: "Add", icon: "add", route: "/product" },
+      { id: 4, name: "Orders", icon: "receipt", route: "/orders" },
+      { id: 5, name: "Settings", icon: "settings", route: "/" },
+    ] as const;
+  
+    const isActive = (route: string) => pathname === route
+
   return (
     <View className="flex-1 bg-gray-50">
-        <TouchableOpacity
-            className="flex-row items-center mb-6"
-            onPress={() => router.back()}
-        >
-            <MaterialIcons name="arrow-back-ios" size={24} color="#374151" />
-            <Text className="text-gray-800 font-medium ml-1">Back</Text>
-        </TouchableOpacity>
       {/* Header */}
-      <View className="bg-white px-4 pt-12 pb-4 border-b border-gray-200">
+      <View className="bg-white px-4 pt-4 pb-4 border-b border-gray-200 ">
         <Text className="text-2xl font-bold text-amber-900">CS Antiques</Text>
         <Text className="text-gray-600">Discover unique antique items</Text>
         
@@ -141,31 +147,36 @@ const Products = () => {
       </View>
 
       {/* Categories */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        className="px-4 py-1 bg-white border-b border-gray-200 h-5"
-      >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            onPress={() => applyCategoryFilter(category, products)}
-            className={`px-4 py-2 mr-2 rounded-full h-10 ${
-              selectedCategory === category 
-                ? "bg-amber-600" 
-                : "bg-gray-100"
-            }`}
-          >
-            <Text className={`${
-              selectedCategory === category 
-                ? "text-white font-semibold" 
-                : "text-gray-700"
-            }`}>
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View className="bg-white border-b border-gray-200">
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ 
+            paddingHorizontal: 16,
+            paddingVertical: 10
+          }}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              onPress={() => applyCategoryFilter(category, products)}
+              className={`px-3 py-1.5 mr-2 rounded-full ${
+                selectedCategory === category 
+                  ? "bg-amber-600" 
+                  : "bg-gray-100"
+              }`}
+            >
+              <Text className={`text-sm ${
+                selectedCategory === category 
+                  ? "text-white font-semibold" 
+                  : "text-gray-700"
+              }`}>
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Products Grid */}
       <ScrollView 
@@ -249,6 +260,31 @@ const Products = () => {
           )}
         </View>
       </ScrollView>
+      {/* Fixed Footer Bar at bottom */}
+            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 px-1 py-2">
+              <View className="flex-row">
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => router.push(item.route)}
+                    className="flex-1 items-center py-1"
+                  >
+                    <MaterialIcons
+                      name={item.icon}
+                      size={26}
+                      color={isActive(item.route) ? "#b45309" : "#4b5563"}
+                    />
+                    <Text
+                      className={`text-[10px] mt-1 ${
+                        isActive(item.route) ? "text-amber-700" : "text-gray-500"
+                      }`}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
     </View>
   )
 }
