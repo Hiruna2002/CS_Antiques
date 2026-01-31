@@ -7,13 +7,14 @@ import {
 } from "react-native"
 import React, { useState, useEffect, useCallback } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
+import { useRouter, usePathname } from "expo-router"
 import { useAuth } from "@/hooks/useAuth"
 import { useLoader } from "@/hooks/useLoader"
 import { getOrdersByCustomer } from "@/services/orderService"
 
 const UserOrders = () => {
   const router = useRouter()
+  const pathname = usePathname()
   const { user } = useAuth()
   const { showLoader, hideLoader } = useLoader()
   
@@ -66,6 +67,16 @@ const UserOrders = () => {
       currency: "USD"
     }).format(price)
   }
+
+  const menuItems = [
+      { id: 1, name: "For You", icon: "home", route: "/userHome" },
+      { id: 2, name: "Cart", icon: "shopping-cart", route: "/cart" },
+      { id: 3, name: "Add", icon: "add", route: "/product" },
+      { id: 4, name: "Orders", icon: "receipt", route: "/orders" },
+      { id: 5, name: "Profile", icon: "person", route: "/profile" },
+    ] as const;
+  
+    const isActive = (route: string) => pathname === route
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -157,6 +168,31 @@ const UserOrders = () => {
           ))
         )}
       </ScrollView>
+      {/* Fixed Footer Bar at bottom */}
+        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 px-1 py-2">
+        <View className="flex-row">
+            {menuItems.map((item) => (
+            <TouchableOpacity
+                key={item.id}
+                onPress={() => router.push(item.route)}
+                className="flex-1 items-center py-1"
+            >
+                <MaterialIcons
+                name={item.icon}
+                size={32}
+                color={isActive(item.route) ? "#b45309" : "#4b5563"}
+                />
+                <Text
+                className={`text-[10px] mt-1 ${
+                    isActive(item.route) ? "text-amber-700" : "text-gray-500"
+                }`}
+                >
+                {item.name}
+                </Text>
+            </TouchableOpacity>
+            ))}
+        </View>
+        </View>
     </View>
   )
 }
