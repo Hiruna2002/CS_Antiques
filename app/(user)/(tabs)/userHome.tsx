@@ -1,25 +1,27 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  TextInput,
-  RefreshControl,
-  ActivityIndicator
+import { 
+    View, 
+    Text, 
+    ScrollView, 
+    TouchableOpacity, 
+    TextInput, 
+    Alert, 
+    RefreshControl, 
+    ActivityIndicator,
+    Image
 } from "react-native"
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
-import { useCart } from "@/context/CartContext"
-import { getAllProducts, searchProducts } from "@/services/productServices"
-import { Product } from "@/types/product"
+import { router, useFocusEffect, usePathname, useRouter } from "expo-router"
 import { useLoader } from "@/hooks/useLoader"
+import { getAllProducts, addProduct, deleteProduct, searchProducts } from "@/services/productServices"
+import { Product } from "@/types/product"
+// import { useCart } from "@/hooks/useCart"
 
 const UserHome = () => {
   const router = useRouter()
-  const { addToCart } = useCart()
   const { showLoader, hideLoader } = useLoader()
+
+  const pathname = usePathname()
   
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -33,6 +35,7 @@ const UserHome = () => {
     setLoading(true)
     try {
       const data = await getAllProducts()
+      console.log(data)
       setProducts(data)
       setFilteredProducts(data)
       
@@ -79,18 +82,16 @@ const UserHome = () => {
     setSelectedCategory(category)
   }
 
-  const handleAddToCart = (product: Product) => {
-    addToCart(product, 1)
-    // Show success message
-    alert(`${product.name} added to cart!`)
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD"
-    }).format(price)
-  }
+    const formatPrice = (price: number) =>
+    new Intl.NumberFormat("en-LK", {
+        style: "currency",
+        currency: "LKR",               // ISO 4217 code for Sri Lankan rupee
+        currencyDisplay: "narrowSymbol", // show compact symbol if available ("Rs")
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    })
+        .format(price)
+        .replace("LKR", "Rs.");
 
   if (loading) {
     return (
@@ -101,11 +102,36 @@ const UserHome = () => {
     )
   }
 
+  const StatCard = ({ title, value, icon, color, onPress }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        className="bg-white rounded-2xl p-4 mb-4 border border-gray-200 shadow-sm flex-row items-center"
+      >
+        <View className={`p-3 rounded-full ${color} mr-4`}>
+          <MaterialIcons name={icon} size={24} color="#fff" />
+        </View>
+        <View>
+          <Text className="text-2xl font-bold text-gray-900">{value}</Text>
+          <Text className="text-gray-600">{title}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  
+    const menuItems = [
+      { id: 1, name: "For You", icon: "home", route: "/userHome" },
+      { id: 2, name: "Cart", icon: "shopping-cart", route: "/cart" },
+      { id: 3, name: "Add", icon: "add", route: "/product" },
+      { id: 4, name: "Orders", icon: "receipt", route: "/orders" },
+      { id: 5, name: "Profile", icon: "person", route: "/profile" },
+    ] as const;
+  
+    const isActive = (route: string) => pathname === route
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-white px-4 pt-12 pb-4 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-amber-900">Antique Shop</Text>
+      <View className="bg-white px-4 pt-4 pb-4 border-b border-gray-200 ">
+        <Text className="text-2xl font-bold text-amber-900">CS Antiques</Text>
         <Text className="text-gray-600">Discover unique antique items</Text>
         
         {/* Search Bar */}
@@ -121,31 +147,36 @@ const UserHome = () => {
       </View>
 
       {/* Categories */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        className="px-4 py-3 bg-white border-b border-gray-200"
-      >
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category}
-            onPress={() => applyCategoryFilter(category, products)}
-            className={`px-4 py-2 mr-2 rounded-full ${
-              selectedCategory === category 
-                ? "bg-amber-600" 
-                : "bg-gray-100"
-            }`}
-          >
-            <Text className={`${
-              selectedCategory === category 
-                ? "text-white font-semibold" 
-                : "text-gray-700"
-            }`}>
-              {category}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View className="bg-white border-b border-gray-200">
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ 
+            paddingHorizontal: 16,
+            paddingVertical: 10
+          }}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              onPress={() => applyCategoryFilter(category, products)}
+              className={`px-3 py-1.5 mr-2 rounded-full ${
+                selectedCategory === category 
+                  ? "bg-amber-600" 
+                  : "bg-gray-100"
+              }`}
+            >
+              <Text className={`text-sm ${
+                selectedCategory === category 
+                  ? "text-white font-semibold" 
+                  : "text-gray-700"
+              }`}>
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* Products Grid */}
       <ScrollView 
@@ -167,7 +198,8 @@ const UserHome = () => {
                 className="w-[48%] bg-white rounded-2xl mb-4 border border-gray-200 shadow-sm overflow-hidden"
               >
                 <TouchableOpacity
-                  //onPress={() => router.push(`/user/product/${product.id}`)}
+                  // onPress={() => router.push(`/(dashboard)/product/${product.id}`)}
+                  onPress={() => router.push(`/(user)/product/${product.id}`)}
                 >
                   {/* Product Image */}
                   <View className="h-40 bg-gray-100">
@@ -221,23 +253,6 @@ const UserHome = () => {
                         </Text>
                       </View>
                     </View>
-
-                    {/* Add to Cart Button */}
-                    <TouchableOpacity
-                      onPress={() => handleAddToCart(product)}
-                      disabled={product.stock === 0}
-                      className={`mt-3 py-2 rounded-lg items-center ${
-                        product.stock === 0 
-                          ? "bg-gray-300" 
-                          : "bg-amber-600"
-                      }`}
-                    >
-                      <Text className={`font-medium ${
-                        product.stock === 0 ? "text-gray-600" : "text-white"
-                      }`}>
-                        {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-                      </Text>
-                    </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -245,6 +260,31 @@ const UserHome = () => {
           )}
         </View>
       </ScrollView>
+      {/* Fixed Footer Bar at bottom */}
+            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 px-1 py-2">
+              <View className="flex-row">
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => router.push(item.route)}
+                    className="flex-1 items-center py-1"
+                  >
+                    <MaterialIcons
+                      name={item.icon}
+                      size={32}
+                      color={isActive(item.route) ? "#b45309" : "#4b5563"}
+                    />
+                    <Text
+                      className={`text-[10px] mt-1 ${
+                        isActive(item.route) ? "text-amber-700" : "text-gray-500"
+                      }`}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
     </View>
   )
 }
