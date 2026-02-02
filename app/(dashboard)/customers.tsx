@@ -5,8 +5,12 @@ import { useFocusEffect } from "expo-router"
 import { useLoader } from "@/hooks/useLoader"
 import { getAllCustomers } from "@/services/customerService"
 import { Customer } from "@/types/customer"
+import { useRouter, usePathname } from "expo-router"
 
 const Customers = () => {
+  const router = useRouter()
+  const pathname = usePathname()
+
   const [customers, setCustomers] = useState<Customer[]>([])
   const { showLoader, hideLoader } = useLoader()
 
@@ -27,6 +31,16 @@ const Customers = () => {
       fetchCustomers()
     }, [])
   )
+
+  const menuItems = [
+    { id: 1, name: "Home", icon: "home", route: "/home" },
+    { id: 2, name: "Category", icon: "inventory", route: "/categories" },
+    { id: 3, name: "Add", icon: "add", route: "/product" },
+    { id: 4, name: "Orders", icon: "receipt", route: "/orders" },
+    { id: 5, name: "Settings", icon: "settings", route: "/" },
+  ] as const;
+
+  const isActive = (route: string) => pathname === route
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
@@ -72,6 +86,31 @@ const Customers = () => {
           ))
         )}
       </ScrollView>
+      {/* Fixed Footer Bar at bottom */}
+            <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 px-1 py-2">
+              <View className="flex-row">
+                {menuItems.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() => router.push(item.route)}
+                    className="flex-1 items-center py-1"
+                  >
+                    <MaterialIcons
+                      name={item.icon}
+                      size={26}
+                      color={isActive(item.route) ? "#b45309" : "#4b5563"}
+                    />
+                    <Text
+                      className={`text-[10px] mt-1 ${
+                        isActive(item.route) ? "text-amber-700" : "text-gray-500"
+                      }`}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
     </View>
   )
 }

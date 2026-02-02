@@ -83,15 +83,15 @@ const Cart = () => {
           <ScrollView className="flex-1 p-4">
             {cartItems.map((item) => (
               <View
-                key={item.product.id}
+                key={item.productId}
                 className="bg-white rounded-2xl p-4 mb-4 border border-gray-200 shadow-sm"
               >
                 <View className="flex-row">
                   {/* Product Image */}
                   <View className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden mr-4">
-                    {item.product.imageUrl ? (
+                    {item.imageUrl ? (
                       <Image
-                        source={{ uri: item.product.imageUrl }}
+                        source={{ uri: item.imageUrl }}
                         className="w-full h-full"
                         resizeMode="cover"
                       />
@@ -105,19 +105,19 @@ const Cart = () => {
                   {/* Product Info */}
                   <View className="flex-1">
                     <Text className="text-gray-900 font-semibold text-lg">
-                      {item.product.name}
+                      {item.name}
                     </Text>
                     <Text className="text-gray-600 text-sm mb-2">
-                      {item.product.category}
+                      {item.category}
                     </Text>
                     <Text className="text-amber-700 font-bold">
-                      {formatPrice(item.product.price)}
+                      {formatPrice(item.price)}
                     </Text>
                   </View>
 
                   {/* Remove Button */}
                   <TouchableOpacity
-                    onPress={() => removeFromCart(item.product.id)}
+                    onPress={() => removeFromCart(item.productId)}
                     className="ml-2"
                   >
                     <MaterialIcons name="close" size={24} color="#ef4444" />
@@ -128,7 +128,7 @@ const Cart = () => {
                 <View className="flex-row items-center justify-between mt-4">
                   <View className="flex-row items-center bg-gray-100 rounded-lg">
                     <TouchableOpacity
-                      onPress={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                      onPress={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                       className="px-4 py-2"
                     >
                       <MaterialIcons name="remove" size={20} color="#374151" />
@@ -139,7 +139,7 @@ const Cart = () => {
                     </Text>
                     
                     <TouchableOpacity
-                      onPress={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                      onPress={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
                       className="px-4 py-2"
                     >
                       <MaterialIcons name="add" size={20} color="#374151" />
@@ -147,7 +147,7 @@ const Cart = () => {
                   </View>
 
                   <Text className="font-bold text-gray-900">
-                    {formatPrice(item.product.price * item.quantity)}
+                    {formatPrice(item.price * item.quantity)}
                   </Text>
                 </View>
               </View>
@@ -203,33 +203,126 @@ const Cart = () => {
           </View>
         </>
       )}
+      
       {/* Fixed Footer Bar at bottom */}
         <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-300 px-1 py-2">
-        <View className="flex-row">
-            {menuItems.map((item) => (
-            <TouchableOpacity
-                key={item.id}
-                onPress={() => router.push(item.route)}
-                className="flex-1 items-center py-1"
-            >
-                <MaterialIcons
-                name={item.icon}
-                size={32}
-                color={isActive(item.route) ? "#b45309" : "#4b5563"}
-                />
-                <Text
-                className={`text-[10px] mt-1 ${
-                    isActive(item.route) ? "text-amber-700" : "text-gray-500"
-                }`}
+            <View className="flex-row">
+                {menuItems.map((item) => (
+                <TouchableOpacity
+                    key={item.id}
+                    onPress={() => router.push(item.route)}
+                    className="flex-1 items-center py-1"
                 >
-                {item.name}
-                </Text>
-            </TouchableOpacity>
-            ))}
-        </View>
+                    <MaterialIcons
+                    name={item.icon}
+                    size={32}
+                    color={isActive(item.route) ? "#b45309" : "#4b5563"}
+                    />
+                    <Text
+                    className={`text-[10px] mt-1 ${
+                        isActive(item.route) ? "text-amber-700" : "text-gray-500"
+                    }`}
+                    >
+                    {item.name}
+                    </Text>
+                </TouchableOpacity>
+                ))}
+            </View>
         </View>
     </View>
   )
 }
 
 export default Cart
+
+
+
+
+
+
+
+// import { View, Text, FlatList, TouchableOpacity, Image, Alert, Pressable } from "react-native";
+// import { useCart } from "@/context/CartContext";
+// import { useRouter } from "expo-router";
+
+// const Cart = () => {
+//   const { cart, increaseQty, decreaseQty, removeFromCart, totalItems, totalPrice } = useCart();
+//   const router = useRouter();
+
+//   if (totalItems === 0) {
+//     return (
+//       <View className="flex-1 justify-center items-center bg-gray-50">
+//         <Text className="text-xl text-gray-600">Your cart is empty</Text>
+//         <TouchableOpacity
+//           onPress={() => router.back()}
+//           className="mt-4 bg-amber-600 py-3 px-6 rounded-xl"
+//         >
+//           <Text className="text-white font-bold">Continue Shopping</Text>
+//         </TouchableOpacity>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <View className="flex-1 bg-gray-50 p-4">
+//       <Text className="text-2xl font-bold mb-4">Your Cart ({totalItems} items)</Text>
+
+//       <FlatList
+//         data={cart}
+//         keyExtractor={item => item.id}
+//         renderItem={({ item }) => (
+//           <View className="flex-row bg-white rounded-xl p-4 mb-4 shadow-sm">
+//             <Image
+//               source={{ uri: item.imageUrl }}
+//               className="w-20 h-20 rounded-lg mr-4"
+//               resizeMode="cover"
+//             />
+//             <View className="flex-1">
+//               <Text className="font-semibold text-gray-900">{item.name}</Text>
+//               <Text className="text-amber-600 font-bold">Rs. {item.price * item.qty}</Text>
+
+//               <View className="flex-row items-center mt-2">
+//                 <TouchableOpacity
+//                   onPress={() => decreaseQty(item.id)}
+//                   className="bg-gray-200 px-3 py-1 rounded-l-lg"
+//                 >
+//                   <Text className="text-lg">-</Text>
+//                 </TouchableOpacity>
+//                 <Text className="px-4 py-1 bg-gray-100">{item.qty}</Text>
+//                 <TouchableOpacity
+//                   onPress={() => increaseQty(item.id)}
+//                   className="bg-gray-200 px-3 py-1 rounded-r-lg"
+//                 >
+//                   <Text className="text-lg">+</Text>
+//                 </TouchableOpacity>
+//               </View>
+//             </View>
+
+//             <TouchableOpacity
+//               onPress={() => removeFromCart(item.id)}
+//               className="ml-4 justify-center"
+//             >
+//               <Text className="text-red-500 font-bold">Remove</Text>
+//             </TouchableOpacity>
+//           </View>
+//         )}
+//       />
+
+//       <View className="bg-white p-4 rounded-xl mt-auto shadow-sm">
+//         <View className="flex-row justify-between mb-2">
+//           <Text className="text-lg font-semibold">Total</Text>
+//           <Text className="text-lg font-bold text-amber-600">Rs. {totalPrice}</Text>
+//         </View>
+
+//         <Pressable
+//           onPress={() => router.push("/place-order")}
+//           className="bg-green-600 py-4 rounded-xl items-center"
+//         >
+//           <Text className="text-white font-bold text-lg">Place Order</Text>
+//         </Pressable>
+//       </View>
+//     </View>
+//   );
+// };
+
+// export default Cart;

@@ -190,6 +190,26 @@ export const registerUser = async (
   }
 };
 
+// export const getAllProducts = async () => {
+//   const user = getCurrentUser()
+//   if (!user) throw new Error('User not authenticated.')
+
+//   const q = query(
+//     productsCollection,
+//     where('userId', '==', user.uid),
+//     orderBy('createdAt', 'desc')
+//   )
+
+//   const snapshot = await getDocs(q)
+//   return snapshot.docs.map(docSnap => {
+//     const data = docSnap.data()
+//     return {
+//       id: docSnap.id,
+//       name: (data.name as string) || '',
+//     }
+//   })
+// }
+
 export const logoutUser = async () => {
   try {
     await signOut(auth());

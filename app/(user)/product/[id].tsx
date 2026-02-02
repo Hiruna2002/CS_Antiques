@@ -44,29 +44,42 @@ const ProductDetail = () => {
     }
   }
 
-  const handleAddToCart = () => {
-    if (!product) return
+  // const handleAddToCart = () => {
+  //   if (!product) return
     
-    if (product.stock < quantity) {
-      Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
-      return
-    }
+  //   if (product.stock < quantity) {
+  //     Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
+  //     return
+  //   }
     
-    addToCart(product, quantity)
-    Alert.alert("Success", `${quantity} × ${product.name} added to cart!`)
-  }
+  //   addToCart(product, quantity)
+  //   Alert.alert("Success", `${quantity} × ${product.name} added to cart!`)
+  // }
 
-  const handleBuyNow = () => {
-    if (!product) return
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      quantity,
+      imageUrl: product.imageUrl,
+    });
+    Alert.alert("Added", `${quantity} × ${product.name} added to cart!`);
+  };
+
+  // const handleBuyNow = () => {
+  //   if (!product) return
     
-    if (product.stock < quantity) {
-      Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
-      return
-    }
+  //   if (product.stock < quantity) {
+  //     Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
+  //     return
+  //   }
     
-    addToCart(product, quantity)
-    // router.push("/user/checkout")
-  }
+  //   addToCart(product)
+  //   // router.push("/user/checkout")
+  // }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -217,7 +230,7 @@ const ProductDetail = () => {
           </TouchableOpacity>
           
           <TouchableOpacity
-            onPress={handleBuyNow}
+            // onPress={handleBuyNow}
             disabled={product.stock === 0}
             className={`flex-1 py-3 rounded-lg ${
               product.stock === 0 ? "bg-gray-300" : "bg-amber-900"
@@ -236,3 +249,102 @@ const ProductDetail = () => {
 }
 
 export default ProductDetail
+
+
+
+
+
+
+// import { useState, useEffect, useContext } from "react";
+// import { View, Text, Image, ScrollView, Pressable, Alert } from "react-native";
+// import { useLocalSearchParams, useRouter, useSegments } from "expo-router";
+// import { getProductById } from "@/services/productServices";
+// import { useCart } from "@/context/CartContext";
+
+// const ProductDetail = () => {
+//   const { id } = useLocalSearchParams();
+//   const router = useRouter();
+//   const { addToCart } = useCart();
+//   const [product, setProduct] = useState<any>(null);
+//   const [loading, setLoading] = useState(true);
+
+  
+
+//   useEffect(() => {
+//     fetchProduct();
+//   }, [id]);
+
+//   const fetchProduct = async () => {
+//     try {
+//       const data = await getProductById(id as string);
+//       setProduct(data);
+//     } catch (error) {
+//       Alert.alert("Error", "Failed to load product");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   if (loading) return <Text className="flex-1 justify-center items-center">Loading...</Text>;
+
+//   if (!product) return <Text className="flex-1 justify-center items-center">Product not found</Text>;
+
+//   return (
+//     <ScrollView className="flex-1 bg-gray-50">
+//       <Image
+//         source={{ uri: product.imageUrl }}
+//         className="w-full h-80"
+//         resizeMode="cover"
+//       />
+
+//       <View className="p-6">
+//         <Text className="text-3xl font-bold text-gray-900 mb-2">{product.name}</Text>
+//         <Text className="text-2xl font-semibold text-amber-600 mb-4">Rs. {product.price}</Text>
+
+//         <Text className="text-gray-600 mb-6">{product.description}</Text>
+
+//         <View className="flex-row justify-between mb-6">
+//           <Text className="text-gray-700">Category: {product.category}</Text>
+//           <Text className="text-gray-700">Condition: {product.condition}</Text>
+//         </View>
+
+//         <View className="flex-row space-x-4">
+//           <Pressable
+//             onPress={() => {
+//               addToCart({
+//                 id: product.id,
+//                 name: product.name,
+//                 price: product.price,
+//                 imageUrl: product.imageUrl,
+//                 qty: 1,
+//               });
+//               Alert.alert("Added to Cart");
+//             }}
+//             className="flex-1 bg-amber-600 py-4 rounded-xl items-center"
+//           >
+//             <Text className="text-white font-bold">Add to Cart</Text>
+//           </Pressable>
+
+//           <Pressable
+//             onPress={() => {
+//               // Buy Now - directly to place order
+//               addToCart({
+//                 id: product.id,
+//                 name: product.name,
+//                 price: product.price,
+//                 imageUrl: product.imageUrl,
+//                 qty: 1,
+//               });
+//               router.push("/(user)/(tabs)/place-order");
+//             }}
+//             className="flex-1 bg-green-600 py-4 rounded-xl items-center"
+//           >
+//             <Text className="text-white font-bold">Buy Now</Text>
+//           </Pressable>
+//         </View>
+//       </View>
+//     </ScrollView>
+//   );
+// };
+
+// export default ProductDetail;

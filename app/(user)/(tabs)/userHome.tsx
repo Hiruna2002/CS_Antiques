@@ -120,7 +120,7 @@ const UserHome = () => {
     const menuItems = [
       { id: 1, name: "For You", icon: "home", route: "/userHome" },
       { id: 2, name: "Cart", icon: "shopping-cart", route: "/cart" },
-      { id: 3, name: "Add", icon: "add", route: "/product" },
+      // { id: 3, name: "Add", icon: "add", route: "/product" },
       { id: 4, name: "Orders", icon: "receipt", route: "/orders" },
       { id: 5, name: "Profile", icon: "person", route: "/profile" },
     ] as const;
@@ -290,3 +290,105 @@ const UserHome = () => {
 }
 
 export default UserHome
+
+
+
+
+
+
+
+// import { useState, useEffect } from "react";
+// import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView } from "react-native";
+// import { useRouter } from "expo-router";
+// import { getAllProducts } from "@/services/productServices"; // ඔයාගේ service එක
+
+// const Home = () => {
+//   const router = useRouter();
+//   const [products, setProducts] = useState<any[]>([]);
+//   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+//   const [categories, setCategories] = useState<string[]>([]);
+//   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     fetchProducts();
+//   }, []);
+
+//   const fetchProducts = async () => {
+//     try {
+//       const data = await getAllProducts();
+//       setProducts(data);
+//       setFilteredProducts(data);
+
+//       // Unique categories extract කරන්න
+//       const uniqueCats = [...new Set(data.map((p: any) => p.category))];
+//       setCategories(uniqueCats);
+//     } catch (error) {
+//       console.error(error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (selectedCategory) {
+//       setFilteredProducts(products.filter(p => p.category === selectedCategory));
+//     } else {
+//       setFilteredProducts(products);
+//     }
+//   }, [selectedCategory, products]);
+
+//   if (loading) {
+//     return <ActivityIndicator size="large" className="flex-1 justify-center" />;
+//   }
+
+//   return (
+//     <View className="flex-1 bg-gray-50 p-4">
+//       {/* Categories Sort */}
+//       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+//         <TouchableOpacity
+//           onPress={() => setSelectedCategory(null)}
+//           className={`px-4 py-2 mr-2 rounded-full ${selectedCategory === null ? "bg-amber-600" : "bg-gray-200"}`}
+//         >
+//           <Text className={selectedCategory === null ? "text-white" : "text-gray-800"}>All</Text>
+//         </TouchableOpacity>
+//         {categories.map(cat => (
+//           <TouchableOpacity
+//             key={cat}
+//             onPress={() => setSelectedCategory(cat)}
+//             className={`px-4 py-2 mr-2 rounded-full ${selectedCategory === cat ? "bg-amber-600" : "bg-gray-200"}`}
+//           >
+//             <Text className={selectedCategory === cat ? "text-white" : "text-gray-800"}>{cat}</Text>
+//           </TouchableOpacity>
+//         ))}
+//       </ScrollView>
+
+//       {/* Products List */}
+//       <FlatList
+//         data={filteredProducts}
+//         keyExtractor={item => item.id}
+//         numColumns={2}
+//         columnWrapperStyle={{ justifyContent: "space-between" }}
+//         renderItem={({ item }) => (
+//           console.log("item id is : ",item.id),
+//           <TouchableOpacity
+//             onPress={() => router.push(`/(user)/product/${item.id}`)}
+//             className="w-[48%] bg-white rounded-xl p-3 mb-4 shadow-sm"
+//           >
+//             <Image
+//               source={{ uri: item.imageUrl }}
+//               className="w-full h-40 rounded-lg mb-2"
+//               resizeMode="cover"
+//             />
+//             <Text className="font-semibold text-gray-900" numberOfLines={1}>
+//               {item.name}
+//             </Text>
+//             <Text className="text-amber-600 font-bold">Rs. {item.price}</Text>
+//           </TouchableOpacity>
+//         )}
+//       />
+//     </View>
+//   );
+// };
+
+// export default Home;

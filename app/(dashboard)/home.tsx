@@ -231,7 +231,7 @@ const Home = () => {
         totalProducts: productStats.total || 0,
         lowStock: productStats.lowStock || 0,
         pendingOrders: orderStats.pendingOrders || 0,
-        totalCustomers: 0 // You can remove this if not needed
+        totalCustomers: 0 
       })
     } catch (error) {
       console.error("Error fetching stats:", error)
@@ -301,6 +301,13 @@ const Home = () => {
             icon="receipt"
             color="bg-yellow-500"
             onPress={() => router.push("/orders")}
+          />
+          <StatCard
+            title="Customers"
+            value={stats.totalCustomers}
+            icon="person"
+            color="bg-yellow-500"
+            onPress={() => router.push("/customers")}
           />
         </View>
 
