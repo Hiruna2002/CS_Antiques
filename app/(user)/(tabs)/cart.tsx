@@ -6,14 +6,16 @@ import {
   Image,
   Alert
 } from "react-native"
-import React from "react"
+import React, { use, useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
 import { useRouter, usePathname } from "expo-router"
 import { useCart } from "@/context/CartContext"
-
+import { getCartItems } from "@/services/cartService"
+import {Carts} from "@/types/cart"
 const Cart = () => {
   const router = useRouter()
   const pathname = usePathname()
+  const [items, setItems] = React.useState<any[]>([])
   const { 
     cartItems, 
     removeFromCart, 
@@ -22,6 +24,23 @@ const Cart = () => {
     getTotalPrice,
     getTotalItems 
   } = useCart()
+
+  const [filteredItems, setFilteredItems] = useState<Carts[]>([])
+
+  const fetchProducts = async () => {
+    try {
+      const data = await getCartItems()
+      console.log("Fetched cart items:", data)
+      setItems(data)
+      setFilteredItems(data)
+    } catch (error) {
+      console.error("Error fetching cart items:", error)
+    }
+  } 
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
 
   const handleUpdateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -40,10 +59,15 @@ const Cart = () => {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-LK", {
       style: "currency",
-      currency: "USD"
-    }).format(price)
+      currency: "LKR",
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(price)
+      .replace("LKR", "Rs.");
   }
 
   const menuItems = [
@@ -56,6 +80,10 @@ const Cart = () => {
   
     const isActive = (route: string) => pathname === route
 
+    console.log("Cart Items:", cartItems)
+    
+    console.log("Filtered Cart Items:", filteredItems)
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -66,7 +94,7 @@ const Cart = () => {
         </Text>
       </View>
 
-      {cartItems.length === 0 ? (
+      {filteredItems.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <MaterialIcons name="shopping-cart" size={80} color="#d1d5db" />
           <Text className="text-gray-500 text-lg mt-4">Your cart is empty</Text>
@@ -81,7 +109,7 @@ const Cart = () => {
         <>
           {/* Cart Items */}
           <ScrollView className="flex-1 p-4">
-            {cartItems.map((item) => (
+            {filteredItems.map((item) => (
               <View
                 key={item.productId}
                 className="bg-white rounded-2xl p-4 mb-4 border border-gray-200 shadow-sm"
@@ -156,7 +184,7 @@ const Cart = () => {
 
           {/* Checkout Summary */}
           <View className="bg-white border-t border-gray-200 p-6">
-            <View className="flex-row justify-between mb-4">
+            {/* <View className="flex-row justify-between mb-4">
               <Text className="text-gray-600">Subtotal</Text>
               <Text className="font-semibold">{formatPrice(getTotalPrice())}</Text>
             </View>
@@ -169,9 +197,9 @@ const Cart = () => {
               <Text className="font-semibold">
                 {formatPrice(getTotalPrice() * 0.08)}
               </Text>
-            </View>
+            </View> */}
             
-            <View className="border-t border-gray-200 pt-4 mb-6">
+            <View className="mb-6">
               <View className="flex-row justify-between">
                 <Text className="text-lg font-bold text-gray-900">Total</Text>
                 <Text className="text-lg font-bold text-amber-700">
@@ -241,86 +269,189 @@ export default Cart
 
 
 
-// import { View, Text, FlatList, TouchableOpacity, Image, Alert, Pressable } from "react-native";
-// import { useCart } from "@/context/CartContext";
+// // import { View, Text, FlatList, TouchableOpacity, Image, Alert, Pressable } from "react-native";
+// // import { useCart } from "@/context/CartContext";
+// // import { useRouter } from "expo-router";
+
+// // const Cart = () => {
+// //   const { cart, increaseQty, decreaseQty, removeFromCart, totalItems, totalPrice } = useCart();
+// //   const router = useRouter();
+
+// //   if (totalItems === 0) {
+// //     return (
+// //       <View className="flex-1 justify-center items-center bg-gray-50">
+// //         <Text className="text-xl text-gray-600">Your cart is empty</Text>
+// //         <TouchableOpacity
+// //           onPress={() => router.back()}
+// //           className="mt-4 bg-amber-600 py-3 px-6 rounded-xl"
+// //         >
+// //           <Text className="text-white font-bold">Continue Shopping</Text>
+// //         </TouchableOpacity>
+// //       </View>
+// //     );
+// //   }
+
+// //   return (
+// //     <View className="flex-1 bg-gray-50 p-4">
+// //       <Text className="text-2xl font-bold mb-4">Your Cart ({totalItems} items)</Text>
+
+// //       <FlatList
+// //         data={cart}
+// //         keyExtractor={item => item.id}
+// //         renderItem={({ item }) => (
+// //           <View className="flex-row bg-white rounded-xl p-4 mb-4 shadow-sm">
+// //             <Image
+// //               source={{ uri: item.imageUrl }}
+// //               className="w-20 h-20 rounded-lg mr-4"
+// //               resizeMode="cover"
+// //             />
+// //             <View className="flex-1">
+// //               <Text className="font-semibold text-gray-900">{item.name}</Text>
+// //               <Text className="text-amber-600 font-bold">Rs. {item.price * item.qty}</Text>
+
+// //               <View className="flex-row items-center mt-2">
+// //                 <TouchableOpacity
+// //                   onPress={() => decreaseQty(item.id)}
+// //                   className="bg-gray-200 px-3 py-1 rounded-l-lg"
+// //                 >
+// //                   <Text className="text-lg">-</Text>
+// //                 </TouchableOpacity>
+// //                 <Text className="px-4 py-1 bg-gray-100">{item.qty}</Text>
+// //                 <TouchableOpacity
+// //                   onPress={() => increaseQty(item.id)}
+// //                   className="bg-gray-200 px-3 py-1 rounded-r-lg"
+// //                 >
+// //                   <Text className="text-lg">+</Text>
+// //                 </TouchableOpacity>
+// //               </View>
+// //             </View>
+
+// //             <TouchableOpacity
+// //               onPress={() => removeFromCart(item.id)}
+// //               className="ml-4 justify-center"
+// //             >
+// //               <Text className="text-red-500 font-bold">Remove</Text>
+// //             </TouchableOpacity>
+// //           </View>
+// //         )}
+// //       />
+
+// //       <View className="bg-white p-4 rounded-xl mt-auto shadow-sm">
+// //         <View className="flex-row justify-between mb-2">
+// //           <Text className="text-lg font-semibold">Total</Text>
+// //           <Text className="text-lg font-bold text-amber-600">Rs. {totalPrice}</Text>
+// //         </View>
+
+// //         <Pressable
+// //           onPress={() => router.push("/place-order")}
+// //           className="bg-green-600 py-4 rounded-xl items-center"
+// //         >
+// //           <Text className="text-white font-bold text-lg">Place Order</Text>
+// //         </Pressable>
+// //       </View>
+// //     </View>
+// //   );
+// // };
+
+// // export default Cart;
+
+
+
+// import { View, Text, ScrollView, TouchableOpacity, Alert, Image } from "react-native";
+// import React from "react";
+// import { MaterialIcons } from "@expo/vector-icons";
 // import { useRouter } from "expo-router";
+// import { useCart } from "@/context/CartContext";
 
 // const Cart = () => {
-//   const { cart, increaseQty, decreaseQty, removeFromCart, totalItems, totalPrice } = useCart();
+//   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
 //   const router = useRouter();
 
-//   if (totalItems === 0) {
-//     return (
-//       <View className="flex-1 justify-center items-center bg-gray-50">
-//         <Text className="text-xl text-gray-600">Your cart is empty</Text>
-//         <TouchableOpacity
-//           onPress={() => router.back()}
-//           className="mt-4 bg-amber-600 py-3 px-6 rounded-xl"
-//         >
-//           <Text className="text-white font-bold">Continue Shopping</Text>
-//         </TouchableOpacity>
-//       </View>
-//     );
-//   }
+//   const handleCheckout = () => {
+//     if (cartItems.length === 0) {
+//       Alert.alert("Cart is empty", "Add some items first!");
+//       return;
+//     }
+//     router.push("/checkout");
+//   };
 
 //   return (
-//     <View className="flex-1 bg-gray-50 p-4">
-//       <Text className="text-2xl font-bold mb-4">Your Cart ({totalItems} items)</Text>
+//     <View className="flex-1 bg-gray-50">
+//       <View className="bg-purple-950 px-6 pt-14 pb-10">
+//         <Text className="text-white text-3xl font-bold">Your Cart 🛒</Text>
+//       </View>
 
-//       <FlatList
-//         data={cart}
-//         keyExtractor={item => item.id}
-//         renderItem={({ item }) => (
-//           <View className="flex-row bg-white rounded-xl p-4 mb-4 shadow-sm">
-//             <Image
-//               source={{ uri: item.imageUrl }}
-//               className="w-20 h-20 rounded-lg mr-4"
-//               resizeMode="cover"
-//             />
-//             <View className="flex-1">
-//               <Text className="font-semibold text-gray-900">{item.name}</Text>
-//               <Text className="text-amber-600 font-bold">Rs. {item.price * item.qty}</Text>
-
-//               <View className="flex-row items-center mt-2">
-//                 <TouchableOpacity
-//                   onPress={() => decreaseQty(item.id)}
-//                   className="bg-gray-200 px-3 py-1 rounded-l-lg"
-//                 >
-//                   <Text className="text-lg">-</Text>
-//                 </TouchableOpacity>
-//                 <Text className="px-4 py-1 bg-gray-100">{item.qty}</Text>
-//                 <TouchableOpacity
-//                   onPress={() => increaseQty(item.id)}
-//                   className="bg-gray-200 px-3 py-1 rounded-r-lg"
-//                 >
-//                   <Text className="text-lg">+</Text>
-//                 </TouchableOpacity>
-//               </View>
-//             </View>
-
+//       <ScrollView className="flex-1 px-5 pt-6">
+//         {cartItems.length === 0 ? (
+//           <View className="items-center mt-20">
+//             <MaterialIcons name="shopping-cart" size={100} color="#D1D5DB" />
+//             <Text className="text-gray-600 text-2xl mt-6 font-medium">Your cart is empty</Text>
 //             <TouchableOpacity
-//               onPress={() => removeFromCart(item.id)}
-//               className="ml-4 justify-center"
+//               className="mt-8 bg-indigo-600 px-10 py-4 rounded-full"
+//               onPress={() => router.push("/userHome")}
 //             >
-//               <Text className="text-red-500 font-bold">Remove</Text>
+//               <Text className="text-white text-lg font-bold">Back To Home</Text>
 //             </TouchableOpacity>
 //           </View>
+//         ) : (
+//           <>
+//             {cartItems.map((item) => (
+//               <View
+//                 key={item.productId}
+//                 className="bg-white rounded-2xl p-4 mb-4 shadow-md flex-row"
+//               >
+//                 <Image
+//                   source={{ uri: item.imageUrl || "https://via.placeholder.com/100" }}
+//                   className="w-24 h-24 rounded-xl mr-4"
+//                   resizeMode="cover"
+//                 />
+//                 <View className="flex-1">
+//                   <Text className="text-lg font-bold text-gray-900">{item.name}</Text>
+//                   <Text className="text-indigo-600 font-semibold mt-1">
+//                     ${(item.price * item.quantity).toFixed(2)}
+//                   </Text>
+//                   <View className="flex-row items-center mt-3">
+//                     <TouchableOpacity onPress={() => updateQuantity(item.productId, item.quantity - 1)}>
+//                       <MaterialIcons name="remove-circle" size={32} color="#EF4444" />
+//                     </TouchableOpacity>
+//                     <Text className="text-xl font-bold mx-4">{item.quantity}</Text>
+//                     <TouchableOpacity onPress={() => updateQuantity(item.productId, item.quantity + 1)}>
+//                       <MaterialIcons name="add-circle" size={32} color="#10B981" />
+//                     </TouchableOpacity>
+//                   </View>
+//                 </View>
+//                 <TouchableOpacity onPress={() => removeFromCart(item.productId)}>
+//                   <MaterialIcons name="delete" size={28} color="#EF4444" />
+//                 </TouchableOpacity>
+//               </View>
+//             ))}
+
+//             <View className="bg-white rounded-2xl p-6 mt-4 shadow-md">
+//               <View className="flex-row justify-between py-3 border-b border-gray-200">
+//                 <Text className="text-gray-700 text-lg">Subtotal</Text>
+//                 <Text className="text-gray-900 font-bold text-xl">${getTotalPrice().toFixed(2)}</Text>
+//               </View>
+//               <View className="flex-row justify-between py-3 border-b border-gray-200">
+//                 <Text className="text-gray-700 text-lg">Delivery Fee</Text>
+//                 <Text className="text-gray-900 font-bold text-xl">$2.99</Text>
+//               </View>
+//               <View className="flex-row justify-between py-4">
+//                 <Text className="text-gray-900 text-2xl font-bold">Total</Text>
+//                 <Text className="text-indigo-700 text-3xl font-extrabold">
+//                   ${(getTotalPrice() + 2.99).toFixed(2)}
+//                 </Text>
+//               </View>
+
+//               <TouchableOpacity
+//                 className="bg-green-600 py-5 rounded-2xl mt-4 items-center shadow-lg active:scale-95"
+//                 onPress={handleCheckout}
+//               >
+//                 <Text className="text-white text-2xl font-bold">Proceed to Checkout</Text>
+//               </TouchableOpacity>
+//             </View>
+//           </>
 //         )}
-//       />
-
-//       <View className="bg-white p-4 rounded-xl mt-auto shadow-sm">
-//         <View className="flex-row justify-between mb-2">
-//           <Text className="text-lg font-semibold">Total</Text>
-//           <Text className="text-lg font-bold text-amber-600">Rs. {totalPrice}</Text>
-//         </View>
-
-//         <Pressable
-//           onPress={() => router.push("/place-order")}
-//           className="bg-green-600 py-4 rounded-xl items-center"
-//         >
-//           <Text className="text-white font-bold text-lg">Place Order</Text>
-//         </Pressable>
-//       </View>
+//       </ScrollView>
 //     </View>
 //   );
 // };

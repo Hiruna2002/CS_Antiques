@@ -10,7 +10,7 @@ import {
 import React, { useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
-import { useCart } from "@/context/CartContext"
+import { addToCart } from "@/services/cartService"
 import { useLoader } from "@/hooks/useLoader"
 import { getProductById } from "@/services/productServices"
 import { Product } from "@/types/product"
@@ -18,7 +18,7 @@ import { Product } from "@/types/product"
 const ProductDetail = () => {
   const router = useRouter()
   const { id } = useLocalSearchParams()
-  const { addToCart } = useCart()
+  // const { addToCart } = useCart()
   const { showLoader, hideLoader } = useLoader()
   
   const [product, setProduct] = useState<Product | null>(null)
@@ -56,18 +56,33 @@ const ProductDetail = () => {
   //   Alert.alert("Success", `${quantity} × ${product.name} added to cart!`)
   // }
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    addToCart({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      quantity,
-      imageUrl: product.imageUrl,
-    });
-    Alert.alert("Added", `${quantity} × ${product.name} added to cart!`);
-  };
+  // const handleAddToCart = () => {
+  //   console.log("--------------------------------------------------------")
+  //   console.log("--------------------------------------------------------")
+  //   console.log("Adding to cart:", { product, quantity })
+  //   console.log("--------------------------------------------------------")
+  //   console.log("--------------------------------------------------------")
+  //   if (!product) return;
+  //   addToCart({
+  //     productId: product.id,
+  //     name: product.name,
+  //     price: product.price,
+  //     category: product.category,
+  //     quantity,
+  //     imageUrl: product.imageUrl,
+  //   });
+  //   Alert.alert("Added", `${quantity} x ${product.name} added to cart!`);
+  // };
+
+  const handleAddToCart = async () => {
+    if (!product) return
+
+    try {
+      await addToCart(product.id, product.name, product.category, product.description, product.price, quantity, product.imageUrl)
+    } catch (error) {
+      Alert.alert("Error", "Failed to add item to cart")
+    }
+  }
 
   // const handleBuyNow = () => {
   //   if (!product) return
