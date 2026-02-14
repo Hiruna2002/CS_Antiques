@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CS_Antiques",
+    "name": "CSAntiques",
     "slug": "CS_Antiques",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -44,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "72b624c7-d644-436e-b435-5e3f48282a32"
+      }
     }
   }
 }

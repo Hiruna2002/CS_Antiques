@@ -6,12 +6,23 @@ import {
   TouchableOpacity,
   Alert
 } from "react-native"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCart } from "@/context/CartContext"
+import {getCartItems} from "@/services/cartService"
+
+
 
 const CheckoutDelivery = () => {
+  const { total, items } = useLocalSearchParams()
+
+  const cartItems = items && typeof items === "string" ? JSON.parse(items) : []
+
+  console.log("------------------------------------------")
+  console.log("Total:", total)
+  console.log("Products:", cartItems)
+
   const router = useRouter()
   const { getTotalPrice } = useCart()
   
@@ -27,6 +38,18 @@ const CheckoutDelivery = () => {
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // const captureProductsIds = async () => {
+  //   const {items} = useLocalSearchParams()
+  //   console.log("---------------------------------")
+  //   // console.log("Received items in orderDetail:", items);
+  //   const data = await getCartItems()
+  // }
+
+  // useEffect(() => {
+  //     captureProductsIds()
+  //   }, [])
+
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -44,22 +67,31 @@ const CheckoutDelivery = () => {
 
   const handleNext = () => {
     if (validateForm()) {
-      // Save delivery details (you can use context or async storage)
-      router.push("/(user)/checkout/payment")
+      const handleItems = cartItems.map((item: any) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        form
+      }))
+      router.push(`/checkout/payment?total=${total}&items=${JSON.stringify(handleItems)}`)
     }
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-LK", {
       style: "currency",
-      currency: "USD"
-    }).format(price)
+      currency: "LKR",
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(price)
+      .replace("LKR", "Rs.");
   }
 
-  const subtotal = getTotalPrice()
-  const shipping = 5.00
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  // const subtotal = getTotalPrice()
+  // const shipping = 5.00
+  // const tax = subtotal * 0.08
+  // const total = subtotal + shipping + tax
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -213,26 +245,11 @@ const CheckoutDelivery = () => {
             Order Summary
           </Text>
           
-          <View className="space-y-2 mb-4">
-            <View className="flex-row justify-between">
-              <Text className="text-gray-600">Subtotal</Text>
-              <Text className="font-medium">{formatPrice(subtotal)}</Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text className="text-gray-600">Shipping</Text>
-              <Text className="font-medium">{formatPrice(shipping)}</Text>
-            </View>
-            <View className="flex-row justify-between">
-              <Text className="text-gray-600">Tax (8%)</Text>
-              <Text className="font-medium">{formatPrice(tax)}</Text>
-            </View>
-          </View>
-          
           <View className="border-t border-gray-200 pt-4">
             <View className="flex-row justify-between">
               <Text className="text-lg font-bold text-gray-900">Total</Text>
               <Text className="text-lg font-bold text-amber-700">
-                {formatPrice(total)}
+                {formatPrice(Number(total))}
               </Text>
             </View>
           </View>

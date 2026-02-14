@@ -8,10 +8,16 @@ import {
 } from "react-native"
 import React, { useState } from "react"
 import { MaterialIcons } from "@expo/vector-icons"
-import { useRouter } from "expo-router"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCart } from "@/context/CartContext"
+import { saveCustomerDetails } from "@/services/orderDetailService"
 
 const CheckoutPayment = () => {
+  const { total, items } = useLocalSearchParams()
+  const totals = Number(total)
+  console.log("------------------------------------------")
+  console.log("Received total in payment:", total)
+  console.log("Received items in payment:", items)
   const router = useRouter()
   const { getTotalPrice, clearCart } = useCart()
   
@@ -61,9 +67,22 @@ const CheckoutPayment = () => {
             try {
               // Here you would create the order in your backend
               // await createOrder({ items, total, deliveryDetails, paymentMethod })
+
+              const parsedItems =
+                typeof items === "string"
+                  ? JSON.parse(items)
+                  : []
+
+              await saveCustomerDetails(
+                totals, 
+                parsedItems, 
+                paymentMethod,
+                cardDetails
+                
+              )
               
-              clearCart()
-            //   router.push("/(user)/checkout/confirm")
+              // clearCart()
+              // router.push("/checkout/confirm")
             } catch (error) {
               Alert.alert("Error", "Failed to place order. Please try again.")
             }
@@ -74,16 +93,22 @@ const CheckoutPayment = () => {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-LK", {
       style: "currency",
-      currency: "USD"
-    }).format(price)
+      currency: "LKR",
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(price)
+      .replace("LKR", "Rs.");
   }
 
-  const subtotal = getTotalPrice()
-  const shipping = 5.00
-  const tax = subtotal * 0.08
-  const total = subtotal + shipping + tax
+  // const subtotal = getTotalPrice()
+  // const shipping = 5.00
+  // const tax = subtotal * 0.08
+  // const totalAmount = typeof total === "string" ? parseFloat(total) : total
+  // const total = subtotal + shipping + tax
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -231,7 +256,7 @@ const CheckoutPayment = () => {
             Order Summary
           </Text>
           
-          <View className="space-y-2 mb-4">
+          {/* <View className="space-y-2 mb-4">
             <View className="flex-row justify-between">
               <Text className="text-gray-600">Subtotal</Text>
               <Text className="font-medium">{formatPrice(subtotal)}</Text>
@@ -244,13 +269,13 @@ const CheckoutPayment = () => {
               <Text className="text-gray-600">Tax (8%)</Text>
               <Text className="font-medium">{formatPrice(tax)}</Text>
             </View>
-          </View>
+          </View> */}
           
           <View className="border-t border-gray-200 pt-4">
             <View className="flex-row justify-between">
               <Text className="text-lg font-bold text-gray-900">Total</Text>
               <Text className="text-lg font-bold text-amber-700">
-                {formatPrice(total)}
+                {formatPrice(Number(total))}
               </Text>
             </View>
           </View>

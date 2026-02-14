@@ -44,63 +44,27 @@ const ProductDetail = () => {
     }
   }
 
-  // const handleAddToCart = () => {
-  //   if (!product) return
-    
-  //   if (product.stock < quantity) {
-  //     Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
-  //     return
-  //   }
-    
-  //   addToCart(product, quantity)
-  //   Alert.alert("Success", `${quantity} × ${product.name} added to cart!`)
-  // }
-
-  // const handleAddToCart = () => {
-  //   console.log("--------------------------------------------------------")
-  //   console.log("--------------------------------------------------------")
-  //   console.log("Adding to cart:", { product, quantity })
-  //   console.log("--------------------------------------------------------")
-  //   console.log("--------------------------------------------------------")
-  //   if (!product) return;
-  //   addToCart({
-  //     productId: product.id,
-  //     name: product.name,
-  //     price: product.price,
-  //     category: product.category,
-  //     quantity,
-  //     imageUrl: product.imageUrl,
-  //   });
-  //   Alert.alert("Added", `${quantity} x ${product.name} added to cart!`);
-  // };
-
   const handleAddToCart = async () => {
     if (!product) return
 
     try {
       await addToCart(product.id, product.name, product.category, product.description, product.price, quantity, product.imageUrl)
+      Alert.alert("Added", `${quantity} x ${product.name} added to cart!`);
     } catch (error) {
       Alert.alert("Error", "Failed to add item to cart")
     }
   }
 
-  // const handleBuyNow = () => {
-  //   if (!product) return
-    
-  //   if (product.stock < quantity) {
-  //     Alert.alert("Insufficient Stock", `Only ${product.stock} items available`)
-  //     return
-  //   }
-    
-  //   addToCart(product)
-  //   // router.push("/user/checkout")
-  // }
-
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-LK", {
       style: "currency",
-      currency: "USD"
-    }).format(price)
+      currency: "LKR",
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    })
+      .format(price)
+      .replace("LKR", "Rs.");
   }
 
   if (loading) {
@@ -119,7 +83,7 @@ const ProductDetail = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="bg-white p-4 border-b border-gray-200 flex-row items-center">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
+        <TouchableOpacity onPress={() => router.push("/(user)/(tabs)/userHome")} className="mr-4">
           <MaterialIcons name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900 flex-1">
