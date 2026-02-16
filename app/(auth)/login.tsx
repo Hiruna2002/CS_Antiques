@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { login } from "@/services/authService";
+import { login, getRole } from "@/services/authService";
 
 const Login = () => {
   const router = useRouter();
@@ -47,8 +47,18 @@ const Login = () => {
 
     try {
           await login(email.trim(), password.trim(),)
-          // router.push("/home");
-          router.push("/(user)/(tabs)/userHome")
+
+          // const data = await getRole();
+
+          // if (data.length>0) {
+          //   const userRole = data[0].role; // get the role string
+          //   if (userRole.toLowerCase() === "admin") {
+          //     // user is admin
+          //   }
+          // }
+
+          router.push("/home");
+          // router.push("/(user)/(tabs)/userHome")
         } catch (error: any) {
           Alert.alert("Registration Failed", error.message || "Something went wrong");
         }

@@ -27,6 +27,7 @@ declare module "firebase/auth" {
   export type User = {
     uid: string;
     email?: string | null;
+    role?:string;
     displayName?: string | null;
     phoneNumber?: string | null;
     photoURL?: string | null;

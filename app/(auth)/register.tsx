@@ -1,10 +1,13 @@
+import { Picker } from '@react-native-picker/picker'
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Button,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -26,6 +29,8 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState<"customer" | "admin" | "">("")
+  const [showPicker, setShowPicker] = useState(false)
 
   const GOLD = "#D4AF37";
 
@@ -45,7 +50,7 @@ const Register = () => {
   }, []);
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !role) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
@@ -71,7 +76,7 @@ const Register = () => {
 
     try {
       // Call registerUser with dynamic values
-      await registerUser(name.trim(), email.trim(), password.trim(), confirmPassword.trim());
+      await registerUser(name.trim(), email.trim(), password.trim(), confirmPassword.trim(), role.trim());
 
       Alert.alert("Success", "Account created successfully!");
       router.push("/login");
@@ -175,7 +180,101 @@ const Register = () => {
                 onChangeText={setConfirmPassword}
               />
             </View>
+            {/* <View style={{ zIndex: 10 }}>
+              <Text className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1 ml-1">
+                Role
+              </Text>
+              <Picker
+                selectedValue={role}
+                onValueChange={(itemValue) => setRole(itemValue as "customer" | "admin")}
+                style={{ height:50, position:'relative', top:-70, color: "#111827" }}
+                
+                dropdownIconColor="#111827"
+              >
+              <Picker.Item label="Select Role" value="" />
+              <Picker.Item label="Customer" value="customer" />
+              <Picker.Item label="Admin" value="admin" />
+            </Picker>
+              
+            </View> */}
           </View>
+
+          {/* <TouchableOpacity
+            onPress={() => setShowPicker(true)}
+            style={{
+              borderWidth: 1,
+              borderColor: "#D1D5DB",
+              borderRadius: 8,
+              padding: 15,
+            }}
+          >
+            <Text style={{ color: role ? "#111827" : "#111827" }}>
+              {role ? role : "Select Role"}
+            </Text>
+          </TouchableOpacity> */}
+
+          <View className="mt-4">
+            <Text className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1 ml-1 mt-3">
+              Role
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              className="border-b border-gray-200 py-2 px-1"
+            >
+              <Text
+                className="text-lg"
+                style={{ color: role ? "#111827" : "#A1A1AA" }}
+              >
+                {role
+                  ? role.charAt(0).toUpperCase() + role.slice(1)
+                  : "Select Role"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Modal visible={showPicker} transparent animationType="slide">
+            <View style={{ flex: 1, justifyContent: "flex-end" }}>
+              <View
+                style={{
+                  backgroundColor: "black",
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  paddingBottom: 30,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    padding: 16,
+                  }}
+                >
+                  <TouchableOpacity onPress={() => setShowPicker(false)}>
+                    <Text style={{ color: "#999" }}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={() => setShowPicker(false)}>
+                    <Text style={{ color: "#D4AF37", fontWeight: "600" }}>
+                      Done
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Picker
+                  selectedValue={role}
+                  onValueChange={(itemValue) =>
+                    setRole(itemValue as "customer" | "admin")
+                  }
+                >
+                  <Picker.Item label="Customer" value="customer" />
+                  <Picker.Item label="Admin" value="admin" />
+                </Picker>
+              </View>
+            </View>
+          </Modal>
+
+
 
           {/* Action Button */}
           <Pressable 

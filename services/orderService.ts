@@ -409,6 +409,7 @@ import {
   Timestamp
 } from 'firebase/firestore'
 import { db } from './firebase'
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry'
 
 const ordersCollection = collection(db, 'orders')
 const customersCollection = collection(db, 'customers')
@@ -423,24 +424,26 @@ export interface OrderItem {
 
 export interface Order {
   id: string
-  orderNumber: string
+  // orderNumber: string
   customerId: string
-  customerName: string
-  customerEmail: string
-  customerPhone: string
-  items: OrderItem[]
-  subtotal: number
-  tax: number
-  shipping: number
+  // customerName: string
+  // customerEmail: string
+  // customerPhone: string
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+  }[];
+  // subtotal: number
+  // tax: number
+  // shipping: number
   totalAmount: number
   status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded'
-  paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'other'
+  paymentMethod: 'cash' | 'card'
   paymentStatus: 'pending' | 'paid' | 'failed'
   shippingAddress?: string
-  billingAddress?: string
-  notes?: string
-  createdAt: string
-  updatedAt: string
+  // createdAt: string
+  // updatedAt: string
   userId: string
 }
 
@@ -471,45 +474,73 @@ const formatTimestampToISO = (value: any): string => {
  * If orderData.customerId is falsy, a new customer document will be created and its id used.
  */
 export const createOrder = async (
-  orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'orderNumber'>
+  // orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'orderNumber'>,
+  total: number,
+  items: any[],
+  paymentMethod: string,
+
 ) => {
   const user = getCurrentUser()
   if (!user) throw new Error('User not authenticated.')
 
-  try {
+  // try {
     // Ensure customer exists (create if missing)
-    let customerIdToUse = orderData.customerId
-    if (!customerIdToUse) {
-      const newCustomerRef = doc(customersCollection) // auto id
-      await setDoc(newCustomerRef, {
-        name: orderData.customerName,
-        email: orderData.customerEmail,
-        phone: orderData.customerPhone,
-        lastOrderDate: new Date().toISOString(),
-        totalSpent: orderData.totalAmount || 0,
-        userId: user.uid,
-        orderCount: 1,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
-      customerIdToUse = newCustomerRef.id
-    } else {
-      // If caller provided customerId, update or create if missing
-      await updateOrCreateCustomer(orderData.customerId, {
-        name: orderData.customerName,
-        email: orderData.customerEmail,
-        phone: orderData.customerPhone,
-        lastOrderDate: new Date().toISOString(),
-        totalSpent: orderData.totalAmount || 0
-      })
-    }
+    // let customerIdToUse = getCurrentUser()?.uid // Assuming user ID is used as customer ID. Adjust if needed.
+    // if (!customerIdToUse) {
+    //   const newCustomerRef = doc(customersCollection) // auto id
 
-    // Generate order number
+    //   await setDoc(newCustomerRef, {
+    //     // name: orderData.customerName,
+    //     // email: orderData.customerEmail,
+    //     // phone: orderData.customerPhone,
+    //     // lastOrderDate: new Date().toISOString(),
+    //     totalSpent: orderData.totalAmount || 0,
+    //     userId: user.uid,
+    //     orderCount: 1,
+    //     createdAt: serverTimestamp(),
+    //     updatedAt: serverTimestamp()
+    //   })
+    //   customerIdToUse = newCustomerRef.id
+    // } else {
+    //   // If caller provided customerId, update or create if missing
+    //   await updateOrCreateCustomer(orderData.customerId, {
+    //     name: orderData.customerName,
+    //     // email: orderData.customerEmail,
+    //     // phone: orderData.customerPhone,
+    //     lastOrderDate: new Date().toISOString(),
+    //     totalSpent: orderData.totalAmount || 0
+    //   })
+    // }
+
+    try {
+      const shippingAddress = items[0]?.form?.address || ""
+      const userId = getCurrentUser()?.uid || ""
+      
+      const orderData: Order = {
+        userId: getCurrentUser()?.uid || "",
+        id: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        items: items.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+        })),
+        shippingAddress,
+        totalAmount: total,
+        paymentMethod: paymentMethod as "cash" | "card",
+        paymentStatus: 'paid',
+        status: 'pending',
+        customerId: userId,
+        // orderNumber: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      }
+      console.log("Creating order with data:", orderData)
+      await setDoc(doc(ordersCollection), orderData)
+
+      // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
 
     const payload: any = {
       ...orderData,
-      customerId: customerIdToUse,
+      customerId: userId,
       orderNumber,
       userId: user.uid,
       createdAt: serverTimestamp(),
@@ -519,9 +550,10 @@ export const createOrder = async (
     const docRef = await addDoc(ordersCollection, payload)
 
     return { id: docRef.id, orderNumber }
-  } catch (error: any) {
-    throw new Error(error?.message || 'Failed to create order.')
-  }
+
+    } catch (error) {
+      console.error("Error creating order:", error)
+    }
 }
 
 export const getAllOrders = async () => {

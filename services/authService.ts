@@ -118,7 +118,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { db, getAuthInstance } from "./firebase";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, query, collection, orderBy, where, getDocs } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface ShopData {
@@ -126,6 +126,7 @@ export interface ShopData {
   email: string;
   password: string;
   confirmPassword: string;
+  role: string;
   address?: string;
   description?: string;
   openingHours?: string;
@@ -133,6 +134,7 @@ export interface ShopData {
 }
 
 const auth = () => getAuthInstance();
+const userCollection = collection(db, 'User')
 
 /* ---------------- AUTH ACTIONS ---------------- */
 
@@ -143,6 +145,12 @@ export const login = async (email: string, password: string) => {
       email,
       password
     );
+    console.log("--------------------------------------")
+    console.log("--------------------------------------")
+    console.log("User Credential is : ", userCredential)
+    console.log("--------------------------------------")
+    console.log("--------------------------------------")
+
     return userCredential.user;
   } catch (error: any) {
     throw new Error(
@@ -151,11 +159,55 @@ export const login = async (email: string, password: string) => {
   }
 };
 
+// export const role = async () => {
+//   const user = getCurrentUser()
+//   try{
+//     const q = query(
+//       userCollection,
+//       where('userId', '==', user.uid),
+//       orderBy('createdAt', 'desc')
+//     )
+
+//     const snapshot = await getDocs(q)
+//     return snapshot.docs.map(docSnap => {
+//       const data = docSnap.data()
+//       return {
+//         role: (data.role as string)
+//       }
+//     })
+//   } catch (error: any) {
+
+//   }
+// }
+
+export const getRole = async (): Promise<string | null> => {
+  const user = getCurrentUser()
+  try {
+    const q = query(
+      userCollection,
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    )
+
+    const snapshot = await getDocs(q)
+    if (!snapshot.empty) {
+      const data = snapshot.docs[0].data()
+      return data.role as string
+    }
+    return null
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
+
 export const registerUser = async (
   name: string,
   email: string,
   password: string,
   confirmPassword: string,
+  role: string,
 ) => {
   try {
     // Create user
@@ -176,6 +228,7 @@ export const registerUser = async (
       email,
       password,
       confirmPassword,
+      role,
       createdAt: new Date().toISOString(),
     };
 
@@ -219,43 +272,40 @@ export const logoutUser = async () => {
   }
 };
 
-export const resetPassword = async (email: string) => {
-  try {
-    await sendPasswordResetEmail(auth(), email);
-  } catch (error: any) {
-    throw new Error(
-      error?.message || "Failed to send password reset email."
-    );
-  }
-};
+// export const resetPassword = async (email: string) => {
+//   try {
+//     await sendPasswordResetEmail(auth(), email);
+//   } catch (error: any) {
+//     throw new Error(
+//       error?.message || "Failed to send password reset email."
+//     );
+//   }
+// };
 
-/* ---------------- SHOP PROFILE ---------------- */
 
-export const getShopProfile = async (userId: string) => {
-  try {
-    const shopDoc = await getDoc(doc(db, "shops", userId));
-    return shopDoc.exists() ? (shopDoc.data() as ShopData) : null;
-  } catch (error: any) {
-    throw new Error(
-      error?.message || "Failed to fetch shop profile."
-    );
-  }
-};
+// export const getShopProfile = async (userId: string) => {
+//   try {
+//     const shopDoc = await getDoc(doc(db, "shops", userId));
+//     return shopDoc.exists() ? (shopDoc.data() as ShopData) : null;
+//   } catch (error: any) {
+//     throw new Error(
+//       error?.message || "Failed to fetch shop profile."
+//     );
+//   }
+// };
 
-export const updateShopProfile = async (
-  userId: string,
-  updates: Partial<ShopData>
-) => {
-  try {
-    await updateDoc(doc(db, "shops", userId), updates);
-  } catch (error: any) {
-    throw new Error(
-      error?.message || "Failed to update profile."
-    );
-  }
-};
-
-/* ---------------- HELPERS ---------------- */
+// export const updateShopProfile = async (
+//   userId: string,
+//   updates: Partial<ShopData>
+// ) => {
+//   try {
+//     await updateDoc(doc(db, "shops", userId), updates);
+//   } catch (error: any) {
+//     throw new Error(
+//       error?.message || "Failed to update profile."
+//     );
+//   }
+// };
 
 export const getCurrentUser = () => {
   return auth().currentUser;

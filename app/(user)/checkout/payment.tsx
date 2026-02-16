@@ -11,6 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useCart } from "@/context/CartContext"
 import { saveCustomerDetails } from "@/services/orderDetailService"
+import { createOrder } from "@/services/orderService"
 
 const CheckoutPayment = () => {
   const { total, items } = useLocalSearchParams()
@@ -79,6 +80,12 @@ const CheckoutPayment = () => {
                 paymentMethod,
                 cardDetails
                 
+              )
+
+              await createOrder(
+                totals,
+                parsedItems,
+                paymentMethod
               )
               
               // clearCart()

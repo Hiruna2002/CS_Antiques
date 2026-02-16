@@ -252,7 +252,6 @@ export const getAllProducts = async () => {
 
   const q = query(
     productsCollection,
-    where('userId', '==', user.uid),
     orderBy('createdAt', 'desc')
   )
 

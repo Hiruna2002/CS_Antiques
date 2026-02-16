@@ -4,7 +4,11 @@ import { Customer } from "./customerService";
 
 export interface OrderDetail {
     userId: string;
-    productId: string;
+    // productId: string;
+    items: {
+        productId: string;
+        quantity: number;
+    }[];
     fullName: string;
     email: string;
     phone: string;
@@ -34,7 +38,11 @@ export const saveCustomerDetails = async (
 
         const customerDetails: OrderDetail = {    
             userId: getCurrentUser()?.uid || "",
-            productId: firstItem.productId || "",
+            // productId: firstItem.productId || "",
+            items: items.map((item) => ({
+                productId: item.productId,
+                quantity: item.quantity,
+            })),
             fullName: firstItem?.form?.fullName || "",
             email: firstItem?.form?.email || "",
             phone: firstItem?.form?.phone || "",
