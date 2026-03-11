@@ -151,7 +151,21 @@ export const login = async (email: string, password: string) => {
     console.log("--------------------------------------")
     console.log("--------------------------------------")
 
-    return userCredential.user;
+    const user = userCredential.user;
+
+    // get user role from Firestore
+    const userDoc = await getDoc(doc(db, "User", user.uid));
+
+    if (userDoc.exists()) {
+      const role = userDoc.data().role;
+
+      return {
+        user,
+        role
+      };
+    } else {
+      throw new Error("User data not found");
+    }
   } catch (error: any) {
     throw new Error(
       error?.message || "Login failed. Please check your credentials."

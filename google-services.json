@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "746559199820",
+    "project_id": "cs-antiques-38604",
+    "storage_bucket": "cs-antiques-38604.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746559199820:android:bcb60c0eaeeb0f988b72e9",
+        "android_client_info": {
+          "package_name": "com.hiruna2002.CS_Antiques"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDozUe_vlTYJhHtt92G-Ci94cqVtLltdbI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

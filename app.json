@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "CSAntiques",
+    "name": "CS_Antiques",
     "slug": "CS_Antiques",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,6 @@
     "scheme": "csantiques",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -19,7 +16,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hiruna2002.CS_Antiques",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
